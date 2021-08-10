@@ -1,8 +1,14 @@
 #include <blend2d.h>
+#include <array>
+#include <type_traits>
+#include <utility>
+#include "Eigen/Dense"
+
+using namespace Eigen;
 
 int main(int argc, char* argv[]) {
 
-	BLImage img(480, 480, BL_FORMAT_PRGB32);
+	BLImage img(1000, 1000, BL_FORMAT_PRGB32);
 
 	// Attach a rendering context into `img`.
 	BLContext ctx(img);
@@ -10,24 +16,46 @@ int main(int argc, char* argv[]) {
 	// Clear the image.
 	ctx.setCompOp(BL_COMP_OP_SRC_COPY);
 	ctx.fillAll();
-
-	BLMatrix2D matrix;
-	matrix.resetToSkewing(0.5, 0.5);
+	double scale = 100;
+	double postep = 1*scale;
+	double inclinedstep = 0.5*scale;
+	std::array<std::pair<double, double> , 6> dir = 
+	{
+		std::make_pair(inclinedstep, -inclinedstep),
+		std::make_pair(-inclinedstep, inclinedstep),
+		std::make_pair(-postep, 0),
+		std::make_pair(postep, 0),
+		std::make_pair(0, -postep),
+		std::make_pair(0, postep)
+	};
 
 	BLPath path;
-	BLPoint point[20];
-	double movev[2] = {1, -1};
-	double movep[2] = {1, 2};
-	point[0] = BLPoint(20, 20);
-	path.moveTo(point[0]);
-	for (int i = 0; i < 20; i++){
-		point[i] = BLPoint(point[i-1].x+movep[i%2], point[i-1].y+movev[i%2]);
-		path.moveTo(point[i]);
-	}
+	BLPoint startPoint(200, 200);
+	BLPoint tmpPoint(startPoint);
 
+	path.moveTo(startPoint);
+	tmpPoint.reset(tmpPoint.x + dir[0].first, tmpPoint.y + dir[0].second);
+	path.lineTo(500, 200);
+	path.lineTo(500, 500);
+	path.lineTo(200, 500);
+	path.lineTo(200, 200);
+	for (int i = 1; i < 1; i++){
+		tmpPoint.reset(tmpPoint.x + dir[i%dir.size()].first, tmpPoint.y + dir[i%dir.size()].second);
+	}
+	BLCircle cir(300, 300, 200);
+	BLMatrix2D mat(0.866, 0, -0.25, 0.866, 0.866/2, -0.5);
+//	path.addCircle(cir, mat);
+
+	BLPath good;
+//	good.addPath(path);
+	good.addPath(path, mat);
+
+//	ctx.skew(0.5,-0.5);
 	ctx.setCompOp(BL_COMP_OP_SRC_COPY);
-	ctx.setFillStyle(BLRgba32(0xFFFFFFFF));
-	ctx.fillPath(path);
+	ctx.setStrokeStyle(BLRgba32(0xFFFF8000));
+	ctx.setStrokeWidth(2);
+	ctx.strokePath(good);
+
 	ctx.end();
 
 	// Let's use some built-in codecs provided by Blend2D.
