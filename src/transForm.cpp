@@ -14,12 +14,23 @@ DGGrid::DGGrid(int size){
 	return;
 }
 
+DGGrid::DGGrid(vector<array<int, 3>> &raw_data){
+	int size = raw_data.size();
+	grid_points.assign(raw_data.begin(), raw_data.end());
+	points.reserve(size);
+	draw_points.reserve(size);
+	bounds.fill(make_pair(0,0));
+	//TODO Check this
+	trans = tTrans::Identity();
+	return;
+}
+
 void DGGrid::checkBound(DGGridPoint& point){
 	for(int i = 0; i < 3; ++i){
-		if(point.postion[i] < bounds[i].first) {
-			bounds[i].first = point.postion[i];
-		} else if (point.postion[i] > bounds[i].second) {
-			bounds[i].second = point.postion[i];
+		if(point.position[i] < bounds[i].first) {
+			bounds[i].first = point.position[i];
+		} else if (point.position[i] > bounds[i].second) {
+			bounds[i].second = point.position[i];
 		}
 	}
 	return;
@@ -35,43 +46,39 @@ void DGGrid::addPoint(array<int, 3> &raw_data){
 	grid_points.emplace_back(id, raw_data);
 }
 
-void DGGrid::initPoints(){
-
-}
-
 
 void DGGrid::transForm(tTrans& itrans){
 	trans = itrans * trans;
-	for(auto draw_point: draw_points){
-		draw_point = itrans * draw_point;
+	int size = points.size();
+	for (int i = 0; i < size; i++) {
+		points[i] = itrans * points[i];
+		draw_points[i] = points[i].block(0, 0, 2, 1);
 	}
 	return;
 }
 
 void DGGrid::initGraph() {
-	initgPoints();
+	initPoints();
 	initDrawPoints();
 }
 
-void DGGrid::initgPoints(){
+void DGGrid::initPoints(){
 	for(auto grid_point : grid_points) {
-		points.emplace_back(
-				grid_point.postion[0] * controler.scale,
-				grid_point.postion[1] * controler.scale,
-				grid_point.postion[2] * controler.scale);
+		points.emplace_back(grid_point.position[0],
+				grid_point.position[1],
+				grid_point.position[2]);
+	}
+	if (!trans.isApprox(tTrans::Identity())) {
+		for(auto point : points) {
+			point = trans * point;
+		}
 	}
 }
 
 void DGGrid::initDrawPoints(){
-	if (!trans.isApprox(tTrans::Identity())) {
-		for (auto point: points) {
-			draw_points.emplace_back(trans * point);
-		}
-	} else {
-		for (auto point: points) {
-			draw_points.emplace_back(trans * point);
-		}	
-	}
+	for (auto point: points) {
+		draw_points.emplace_back(point.block(0, 0, 2, 1));
+	}	
 }
 
 int DGGrid::size(){

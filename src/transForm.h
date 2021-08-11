@@ -26,24 +26,28 @@ class DGGridPoint {
 private:
 public:
 	int id;
-	array<int, 3> postion;
+	array<int, 3> position;
 	string name;
 
 	DGGridPoint(int id, int i, int j, int k, string name = "")
-		:id(id), postion({i, j ,k}), name(name) {}
+		:id(id), position({i, j ,k}), name(name) {}
 	DGGridPoint(int id, array<int, 3> &pos, string name = "")
 		:id(id), name(name) {
-			copy(pos.begin(), pos.end(), postion.begin());
+			copy(pos.begin(), pos.end(), position.begin());
+	}
+	DGGridPoint(array<int, 3> &pos, string name = "")
+		:name(name) {
+			copy(pos.begin(), pos.end(), position.begin());
 	}
 	void reset(int iid, int ii, int ij, int ik){
 		id = iid;
-		postion[0] = ii;
-		postion[1] = ij;
-		postion[2] = ik;
+		position[0] = ii;
+		position[1] = ij;
+		position[2] = ik;
 	}
 	void reset(int iid, array<int, 3> pos){
 		id = iid;
-		copy(pos.begin(), pos.end(), postion.begin());
+		copy(pos.begin(), pos.end(), position.begin());
 	}
 };
 
@@ -58,17 +62,17 @@ private:
 	//helper
 	void checkBound(DGGridPoint& point);
 	void initPoints();
-	void initgPoints();
 	void initDrawPoints();
+	//grid_points init at when call addPoint or at when class construct
 
 public:
 	DGGrid(int size);
-	DGGrid(vector<>)
+	DGGrid(vector<array<int, 3>> &raw_data);
 	int size();
 	void addPoint(DGGridPoint& point);
-	void addPoint(vector<array<int, 3>> &raw_data);
+	void addPoint(array<int, 3> &raw_data);
 	void transForm(tTrans& trans);
-	//Must be after addPoint
+	//Must be after grid_points init
 	void initGraph();
 };
 };
