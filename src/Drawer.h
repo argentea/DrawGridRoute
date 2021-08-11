@@ -15,7 +15,6 @@ public:
 
 class DGConnections{
 	vector<vector<int>> conns;
-	vector<BLRgba32> color_set;
 };
 
 class DGDrawer {
@@ -29,10 +28,13 @@ private:
 	//picture item
 	BLImage img;
 	BLContext ctx;
+	vector<BLPoint> ppoints;
 	vector<BLPath> psolus;
 	vector<BLPath> pconns;
 
 	//color item
+	vector<BLRgba32> conns_color_set;
+	vector<BLRgba32> solus_color_set;
 
 };
 

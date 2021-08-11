@@ -31,6 +31,20 @@ public:
 
 	DGGridPoint(int id, int i, int j, int k, string name = "")
 		:id(id), postion({i, j ,k}), name(name) {}
+	DGGridPoint(int id, array<int, 3> &pos, string name = "")
+		:id(id), name(name) {
+			copy(pos.begin(), pos.end(), postion.begin());
+	}
+	void reset(int iid, int ii, int ij, int ik){
+		id = iid;
+		postion[0] = ii;
+		postion[1] = ij;
+		postion[2] = ik;
+	}
+	void reset(int iid, array<int, 3> pos){
+		id = iid;
+		copy(pos.begin(), pos.end(), postion.begin());
+	}
 };
 
 class DGGrid {
@@ -43,13 +57,16 @@ private:
 
 	//helper
 	void checkBound(DGGridPoint& point);
-	void initDrawPoints();
 	void initPoints();
+	void initgPoints();
+	void initDrawPoints();
 
 public:
 	DGGrid(int size);
+	DGGrid(vector<>)
 	int size();
 	void addPoint(DGGridPoint& point);
+	void addPoint(vector<array<int, 3>> &raw_data);
 	void transForm(tTrans& trans);
 	//Must be after addPoint
 	void initGraph();

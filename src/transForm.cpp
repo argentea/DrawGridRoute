@@ -30,6 +30,16 @@ void DGGrid::addPoint(DGGridPoint& point){
 	grid_points.emplace_back(point);
 }
 
+void DGGrid::addPoint(array<int, 3> &raw_data){
+	int id = grid_points.size();
+	grid_points.emplace_back(id, raw_data);
+}
+
+void DGGrid::initPoints(){
+
+}
+
+
 void DGGrid::transForm(tTrans& itrans){
 	trans = itrans * trans;
 	for(auto draw_point: draw_points){
@@ -39,11 +49,11 @@ void DGGrid::transForm(tTrans& itrans){
 }
 
 void DGGrid::initGraph() {
-	initPoints();
+	initgPoints();
 	initDrawPoints();
 }
 
-void DGGrid::initPoints(){
+void DGGrid::initgPoints(){
 	for(auto grid_point : grid_points) {
 		points.emplace_back(
 				grid_point.postion[0] * controler.scale,
