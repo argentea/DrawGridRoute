@@ -1,67 +1,95 @@
-#include <blend2d.h>
-#include <array>
-#include <type_traits>
-#include <utility>
-#include "Eigen/Dense"
+#include "Drawer.h"
+#include "transForm.h"
 
 using namespace Eigen;
 
-int main(int argc, char* argv[]) {
+#include <algorithm>
+#include <iostream>
+#include <cstring>
 
-	BLImage img(1000, 1000, BL_FORMAT_PRGB32);
+// for mmap:
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
 
-	// Attach a rendering context into `img`.
-	BLContext ctx(img);
+const char* map_file(const char* fname, size_t& length);
 
-	// Clear the image.
-	ctx.setCompOp(BL_COMP_OP_SRC_COPY);
-	ctx.fillAll();
-	double scale = 100;
-	double postep = 1*scale;
-	double inclinedstep = 0.5*scale;
-	std::array<std::pair<double, double> , 6> dir = 
-	{
-		std::make_pair(inclinedstep, -inclinedstep),
-		std::make_pair(-inclinedstep, inclinedstep),
-		std::make_pair(-postep, 0),
-		std::make_pair(postep, 0),
-		std::make_pair(0, -postep),
-		std::make_pair(0, postep)
-	};
+int main(int argc, char* argv[]){
+	size_t length;
+	auto f = map_file("../log", length);
+	auto l = f + length;
 
-	BLPath path;
-	BLPoint startPoint(200, 200);
-	BLPoint tmpPoint(startPoint);
+	int numVertex = 0;
+	vector<array<int, 3>> grid_data;
+	vector<vector<int>> conn_data;
+	vector<list<int>> sol_data;
+	float nodeCost;
+	int nodeuId, layerId, trackId, crossId, dir;
 
-	path.moveTo(startPoint);
-	tmpPoint.reset(tmpPoint.x + dir[0].first, tmpPoint.y + dir[0].second);
-	path.lineTo(500, 200);
-	path.lineTo(500, 500);
-	path.lineTo(200, 500);
-	path.lineTo(200, 200);
-	for (int i = 1; i < 1; i++){
-		tmpPoint.reset(tmpPoint.x + dir[i%dir.size()].first, tmpPoint.y + dir[i%dir.size()].second);
+	const char format1[] = "n%d: %f, layer:%d, track:%d, cross:%d, dir:%d\n";
+	const char format2[] = "%d: %f , layer:%d, track:%d\n";
+
+	float connCost;
+	int nodevId;
+
+	numVertex = 0;
+	for (;(f = static_cast<const char*>(memchr(f, 'n', l-f))) && f!=l ; ++f) {
+		sscanf(f,format1,
+				&nodeuId, &nodeCost, &layerId, &trackId, &crossId, &dir);
+		if(dir) {
+			grid_data.push_back({layerId, trackId, crossId});
+		}else {
+			grid_data.push_back({layerId, crossId, trackId});
+		}
+//		printf(format1, nodeuId, nodeCost, layerId, trackId, crossId, dir);
+
+		for(int i = 0; i < 6; i++){
+			f = static_cast<const char*>(memchr(f, '\n', l-f));
+			f++;
+			sscanf(f, format2, &nodevId, &connCost, &layerId, &trackId);
+			//printf(format2, nodevId, connCost, layerId, trackId);
+			conn_data.push_back({nodeuId, nodevId});
+		}
+		numVertex++;
+
 	}
-	BLCircle cir(300, 300, 200);
-	BLMatrix2D mat(0.866, 0, -0.25, 0.866, 0.866/2, -0.5);
-//	path.addCircle(cir, mat);
+	cout << "main construct drawer\n";
+	DG::DGDrawer drawer(grid_data, conn_data, sol_data);
+	cout << "main construct drawer end\n";
+	drawer.initGraph();
+	drawer.printSolus();
+	drawer.printPoints();
+	drawer.drawGraph();
+	drawer.printBMP();
+	
 
-	BLPath good;
-//	good.addPath(path);
-	good.addPath(path, mat);
-
-//	ctx.skew(0.5,-0.5);
-	ctx.setCompOp(BL_COMP_OP_SRC_COPY);
-	ctx.setStrokeStyle(BLRgba32(0xFFFF8000));
-	ctx.setStrokeWidth(2);
-	ctx.strokePath(good);
-
-	ctx.end();
-
-	// Let's use some built-in codecs provided by Blend2D.
-	BLImageCodec codec;
-	codec.findByName("BMP");
-	img.writeToFile("bl-getting-started-1.bmp", codec);
-
-	return 0;
+//	std::cout << "numVertex ="  << grid_data.size() << "\n";
 }
+
+void handle_error(const char* msg) {
+    perror(msg); 
+    exit(255);
+}
+
+const char* map_file(const char* fname, size_t& length)
+{
+    int fd = open(fname, O_RDONLY);
+    if (fd == -1)
+        handle_error("open");
+
+    // obtain file size
+    struct stat sb;
+    if (fstat(fd, &sb) == -1)
+        handle_error("fstat");
+
+    length = sb.st_size;
+
+    const char* addr = static_cast<const char*>(mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, 0u));
+    if (addr == MAP_FAILED)
+        handle_error("mmap");
+
+    // TODO close fd at some point in time, call munmap(...)
+    return addr;
+}
+

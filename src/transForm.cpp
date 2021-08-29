@@ -2,26 +2,30 @@
 
 namespace DG{
 
+
 DGControler controler(1);
 
+tTrans DGGrid::defaultTrans = tTrans({{0.7331748,0.3557667,0.5795556},{0.3557667,0.5256447,-0.7727404},{-0.5795556,0.7727404,0.2588195}});
 DGGrid::DGGrid(int size){
+	cout << "init by size\n";
 	grid_points.reserve(size);
 	points.reserve(size);
 	draw_points.reserve(size);
 	bounds.fill(make_pair(0,0));
 	//TODO Check this
-	trans = tTrans::Identity();
+	trans = defaultTrans;
 	return;
 }
 
 DGGrid::DGGrid(vector<array<int, 3>> &raw_data){
+	cout << "init by vector<array<int,3>>\n";
 	int size = raw_data.size();
 	grid_points.assign(raw_data.begin(), raw_data.end());
 	points.reserve(size);
 	draw_points.reserve(size);
 	bounds.fill(make_pair(0,0));
 	//TODO Check this
-	trans = tTrans::Identity();
+	trans = defaultTrans;
 	return;
 }
 
@@ -63,19 +67,22 @@ void DGGrid::initGraph() {
 }
 
 void DGGrid::initPoints(){
-	for(auto grid_point : grid_points) {
-		points.emplace_back(grid_point.position[0],
-				grid_point.position[1],
-				grid_point.position[2]);
+	cout << "init point\n";
+	vector<int> tmppoint(3);
+	vector<int> offset(3);
+	for(int i = 0; i < 3; i++){
+		offset[i] = (bounds[i].first + bounds[i].second)/2;
 	}
-	if (!trans.isApprox(tTrans::Identity())) {
-		for(auto point : points) {
-			point = trans * point;
+	for(auto grid_point : grid_points) {
+		for(int i = 0; i < 3; i++){
+			tmppoint[i] = grid_point.position[i] - offset[i];
 		}
+		points.emplace_back(controler.scale *trans* tPosd(tmppoint[0], tmppoint[1], tmppoint[2]));
 	}
 }
 
 void DGGrid::initDrawPoints(){
+	cout << "init draw point\n";
 	for (auto point: points) {
 		draw_points.emplace_back(point.block(0, 0, 2, 1));
 	}	
