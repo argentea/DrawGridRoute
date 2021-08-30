@@ -16,7 +16,10 @@ class DGControler {
 private:
 public:
 	double scale;
-	DGControler(double iscale = 1000000):scale(iscale){
+	DGControler(){
+		scale = 200;
+	}
+	DGControler(double iscale):scale(iscale){
 		return;
 	}
 };
@@ -82,7 +85,7 @@ public:
 	//Must be after grid_points init
 	void initGraph();
 
-	void printGPoint(){
+	void printGPoints(){
 		cout << "printGPoint\n";
 		int index = 0;
 		for (auto pos: grid_points){
@@ -91,7 +94,7 @@ public:
 		}
 		cout << "printGPoint end\n";
 	}
-	void printpoint(){
+	void printPoints(){
 		cout << "printPoint\n";
 		int index = 0;
 		for (auto dp: points){
@@ -101,7 +104,7 @@ public:
 		cout << "printPoint end\n";
 	}
 
-	void printDpoint(){
+	void printDpoints(){
 		cout << "printDPoint\n";
 		int index = 0;
 		for (auto dp: draw_points){

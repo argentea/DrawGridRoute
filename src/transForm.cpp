@@ -3,7 +3,7 @@
 namespace DG{
 
 
-DGControler controler(1);
+DGControler controler(50);
 
 tTrans DGGrid::defaultTrans = tTrans({{0.7331748,0.3557667,0.5795556},{0.3557667,0.5256447,-0.7727404},{-0.5795556,0.7727404,0.2588195}});
 DGGrid::DGGrid(int size){

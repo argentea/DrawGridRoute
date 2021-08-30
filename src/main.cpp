@@ -1,5 +1,6 @@
 #include "Drawer.h"
 #include "transForm.h"
+#include "chrono"
 
 using namespace Eigen;
 
@@ -16,6 +17,8 @@ using namespace Eigen;
 const char* map_file(const char* fname, size_t& length);
 
 int main(int argc, char* argv[]){
+	auto start = chrono::steady_clock::now();
+	chrono::duration<double> time_use;
 	size_t length;
 	auto f = map_file("../log", length);
 	auto l = f + length;
@@ -54,15 +57,35 @@ int main(int argc, char* argv[]){
 		numVertex++;
 
 	}
+
+	auto data_init_end = chrono::steady_clock::now();
+	chrono::duration<double> time_data_read = data_init_end - start;
 	cout << "main construct drawer\n";
+
+
 	DG::DGDrawer drawer(grid_data, conn_data, sol_data);
+	auto drawer_init = chrono::steady_clock::now();
+	chrono::duration<double> time_draw_init = drawer_init - data_init_end;
 	cout << "main construct drawer end\n";
+
+
 	drawer.initGraph();
-	drawer.printSolus();
-	drawer.printPoints();
+	auto graph_init_end = chrono::steady_clock::now();
+	chrono::duration<double> time_graph_init = graph_init_end - drawer_init;
+
 	drawer.drawGraph();
-	drawer.printBMP();
-	
+	auto draw_graph_end = chrono::steady_clock::now();
+	chrono::duration<double> time_draw_graph = draw_graph_end - graph_init_end;
+
+	chrono::duration<double> time_total = draw_graph_end - start;
+
+	cout << endl << "**************time use******************\n";
+	cout << "total time: " << time_total.count() << "s, \n";
+	cout << "reading data time: " << time_data_read.count() << "s, " << time_data_read.count()/time_total.count()*100 << "%\n";
+	cout << "drawer construct time: " << time_draw_init.count() << "s, " << time_draw_init.count()/time_total.count()*100 << "%\n";
+	cout << "graph init time: " << time_graph_init.count() << "s, " << time_graph_init.count()/time_total.count()*100 << "%\n";
+	cout << "draw graph time: " << time_draw_graph.count() << "s, " << time_draw_graph.count()/time_total.count()*100 << "%\n";
+
 
 //	std::cout << "numVertex ="  << grid_data.size() << "\n";
 }

@@ -3,6 +3,9 @@
 
 namespace DG{
 
+vector<BLRgba32>  DGDrawer::conns_color_set;
+
+
 void DGDrawer::initGraph(){
 	//init draw point
 	int point_num = grid.size();
