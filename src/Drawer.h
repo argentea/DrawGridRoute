@@ -31,6 +31,13 @@ DGLineAtrri(int layerId, int trackId, int viaId)
 DGLineAtrri(vector<int> attri)
 	:layerIdx(attri[0]), trackIdx(attri[1]), viaIdx(attri[2]){
 }
+DGLineAtrri(int layer_attri){
+	if (layer_attri != -1) {
+		layerIdx = layer_attri;
+	}else {
+		viaIdx = 0;
+	}
+}
 
 };
 
@@ -63,20 +70,17 @@ public:
 		}
 	}
 	//suggest to use that
-	DGConnections(vector<vector<int>>& raw_conns, vector<vector<int>> raw_attri){
+	DGConnections(vector<vector<int>>& raw_conns, vector<int>& raw_attri_layer){
 		int lineNum = raw_conns.size();
 		data.resize(lineNum);
 		data_attribute.reserve(lineNum);
+		conns_size = 0;
 		for (int i = 0; i < lineNum; ++i) {
 			copy(raw_conns[i].begin(), raw_conns[i].end(), back_inserter(data[i]));
-			data_attribute.emplace_back(raw_attri[i]);
-		}
-		conns_size = 0;
-		for(auto conn: data){
-			conns_size += conn.size();
+			data_attribute.emplace_back(raw_attri_layer[i]);
+			conns_size += data[i].size();
 		}
 	}
-
 	//Do not use it
 	DGConnections(vector<array<int, 6>>& raw_conns);
 
@@ -88,6 +92,8 @@ private:
 	DGGrid grid;
 	DGConnections conns;
 	vector<DGSolution> solus;
+	int x_size;
+	int y_size;
 
 	//picture item
 	bool ready_to_draw = false;
@@ -95,6 +101,7 @@ private:
 	BLContext ctx;
 	vector<BLPoint> dpoints;
 	vector<BLPath> dconns;
+	vector<int> dconns_color;
 	vector<BLPath> dsolus;
 
 	//color item
@@ -105,22 +112,34 @@ private:
 	BLImageCodec codec;
 
 	static void connsColorInit(){
-		vector<int> conns_color({0xF0F8FF, 0x8A2BE2, 0x5F9EA0, 0x98F5FF,
-			0x8EE5EE, 0x7AC5CD, 0x53868B, 0x6495ED,
-			0x00008B, 0x008B8B, 0x483D8B, 0x00CED1,
-			0x00BFFF, 0x00BFFF, 0x00B2EE, 0x009ACD,
-			0x00688B, 0x1E90FF, 0x1E90FF, 0x1C86EE,});
+		vector<long> conns_color({0xA52A2AFF, 0xCD853FFF});
 		for (auto col: conns_color){
 			conns_color_set.emplace_back(col);
 		}
 	}
+	static void solusColorInit(){
+		vector<long> solus_color({0xF0F8FFFF, 0x8A2BE2FF, 0x5F9EA0FF, 0x98F5FFFF,
+			0x8EE5EEFF, 0x7AC5CDFF, 0x53868BFF, 0x6495EDFF,
+			0x00008BFF, 0x008B8BFF, 0x483D8BFF, 0x00CED1FF,
+			0x00BFFFFF, 0x00BFFFFF, 0x00B2EEFF, 0x009ACDFF,
+			0x00688BFF, 0x1E90FFFF, 0x1E90FFFF, 0x1C86EEFF});
+		for (auto col: solus_color){
+			solus_color_set.emplace_back(col);
+		}
+	}
 
 public:
-	DGDrawer(vector<array<int, 3>> &raw_grid, vector<vector<int>> &raw_conns, vector<list<int>> & raw_sols):grid(raw_grid), conns(raw_conns){
+	DGDrawer(vector<array<int, 3>> &raw_grid,
+			vector<vector<int>> &raw_conns, 
+			vector<list<int>> &raw_sols,
+			vector<int> &raw_conns_attrib):grid(raw_grid), conns(raw_conns, raw_conns_attrib){
 		//grid, conns, solus init
 		cout << "init DGDrawer\n";
 		if (conns_color_set.empty()){
 			connsColorInit();
+		}
+		if (solus_color_set.empty()){
+			solusColorInit();
 		}
 		grid.initGraph();
 		solus.reserve(raw_sols.size());

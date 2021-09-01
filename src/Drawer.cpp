@@ -4,6 +4,7 @@
 namespace DG{
 
 vector<BLRgba32>  DGDrawer::conns_color_set;
+vector<BLRgba32>  DGDrawer::solus_color_set;
 
 
 void DGDrawer::initGraph(){
@@ -17,7 +18,9 @@ void DGDrawer::initGraph(){
 	//init draw conn;
 	int conns_num = conns.lines_num();
 	dconns.resize(conns_num);
+	dconns_color.resize(conns_num);
 	for (int i = 0; i < conns_num; ++i) {
+		dconns_color[i] = conns.data_attribute[i].layerIdx;
 		dconns[i].moveTo(dpoints[*conns.data[i].begin()]);
 		for (auto conn_point_index: conns.data[i]) {
 			if (conn_point_index == -1) {
@@ -38,8 +41,9 @@ void DGDrawer::initGraph(){
 	}
 
 	//init image and context
-	if (img.create(1000, 1000, BL_FORMAT_PRGB32) != BL_SUCCESS) {
+	if (img.create(grid.picSizex(), grid.picSizey(), BL_FORMAT_PRGB32) != BL_SUCCESS) {
 		cerr << "create image fail, please check image size or format\n";
+		cerr << "size : " << grid.picSizex() << "x" << grid.picSizey() << endl;
 	}
 	ctx.begin(img);
 	if (!ctx){
@@ -107,12 +111,20 @@ DGConnections::DGConnections(vector<array<int, 6>>& raw_conns){
 
 void DGDrawer::drawGraph(){
 
-	//set color
-	ctx.setStrokeStyle(BLRgba32(0xFFFF8000));
+	//set width
 	ctx.setStrokeWidth(2);
 	//draw grid
-	for(auto path: dconns){
-		ctx.strokePath(path);
+	int conns_size = dconns.size();
+	int color_set_size = conns_color_set.size();
+	for (int i = 0; i < conns_size; ++i){
+		int colorid = dconns_color[i];
+		if(colorid == -1){
+			ctx.setStrokeStyle(BLRgba32(0xFFFF8000));
+			ctx.strokePath(dconns[i]);
+			continue;
+		}
+		ctx.setStrokeStyle(conns_color_set[colorid%color_set_size]);
+		ctx.strokePath(dconns[i]);
 	}
 	for(auto path: dsolus){
 		ctx.strokePath(path);
@@ -122,6 +134,8 @@ void DGDrawer::drawGraph(){
 
 void DGDrawer::printBMP(){
 	codec.findByName("BMP");
-	img.writeToFile("good.bmp", codec);
+	if (img.writeToFile("bad.bmp", codec) != BL_SUCCESS){
+		cerr << "write fail" << endl;
+	}
 }
 };

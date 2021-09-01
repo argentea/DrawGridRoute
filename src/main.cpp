@@ -17,18 +17,23 @@ using namespace Eigen;
 const char* map_file(const char* fname, size_t& length);
 
 int main(int argc, char* argv[]){
+	if (argc < 2){
+		cerr << "need file name" << endl;
+		return 1;
+	}
 	auto start = chrono::steady_clock::now();
 	chrono::duration<double> time_use;
 	size_t length;
-	auto f = map_file("../log", length);
+	auto f = map_file(argv[1], length);
 	auto l = f + length;
 
 	int numVertex = 0;
 	vector<array<int, 3>> grid_data;
 	vector<vector<int>> conn_data;
+	vector<int> conn_attri;
 	vector<list<int>> sol_data;
 	float nodeCost;
-	int nodeuId, layerId, trackId, crossId, dir;
+	int nodeuId, layerIdu, layerIdv, trackId, crossId, dir;
 
 	const char format1[] = "n%d: %f, layer:%d, track:%d, cross:%d, dir:%d\n";
 	const char format2[] = "%d: %f , layer:%d, track:%d\n";
@@ -39,20 +44,25 @@ int main(int argc, char* argv[]){
 	numVertex = 0;
 	for (;(f = static_cast<const char*>(memchr(f, 'n', l-f))) && f!=l ; ++f) {
 		sscanf(f,format1,
-				&nodeuId, &nodeCost, &layerId, &trackId, &crossId, &dir);
+				&nodeuId, &nodeCost, &layerIdu, &trackId, &crossId, &dir);
 		if(dir) {
-			grid_data.push_back({layerId, trackId, crossId});
+			grid_data.push_back({layerIdu, trackId, crossId});
 		}else {
-			grid_data.push_back({layerId, crossId, trackId});
+			grid_data.push_back({layerIdu, crossId, trackId});
 		}
 //		printf(format1, nodeuId, nodeCost, layerId, trackId, crossId, dir);
 
 		for(int i = 0; i < 6; i++){
 			f = static_cast<const char*>(memchr(f, '\n', l-f));
 			f++;
-			sscanf(f, format2, &nodevId, &connCost, &layerId, &trackId);
-			//printf(format2, nodevId, connCost, layerId, trackId);
+			sscanf(f, format2, &nodevId, &connCost, &layerIdv, &trackId);
+			//printf(format2, nodevId, connCost, layerIdv, trackId);
 			conn_data.push_back({nodeuId, nodevId});
+			if (layerIdu == layerIdv)
+				conn_attri.push_back(layerIdv);
+			else { 
+				conn_attri.push_back(-1);
+			}
 		}
 		numVertex++;
 
@@ -63,7 +73,7 @@ int main(int argc, char* argv[]){
 	cout << "main construct drawer\n";
 
 
-	DG::DGDrawer drawer(grid_data, conn_data, sol_data);
+	DG::DGDrawer drawer(grid_data, conn_data, sol_data, conn_attri);
 	auto drawer_init = chrono::steady_clock::now();
 	chrono::duration<double> time_draw_init = drawer_init - data_init_end;
 	cout << "main construct drawer end\n";
@@ -77,17 +87,21 @@ int main(int argc, char* argv[]){
 	auto draw_graph_end = chrono::steady_clock::now();
 	chrono::duration<double> time_draw_graph = draw_graph_end - graph_init_end;
 
-	chrono::duration<double> time_total = draw_graph_end - start;
+	
+	drawer.printBMP();
+	auto print_graph_end = chrono::steady_clock::now();
+	chrono::duration<double> time_print_graph = print_graph_end - draw_graph_end;
 
+
+	chrono::duration<double> time_total = print_graph_end - start;
 	cout << endl << "**************time use******************\n";
 	cout << "total time: " << time_total.count() << "s, \n";
 	cout << "reading data time: " << time_data_read.count() << "s, " << time_data_read.count()/time_total.count()*100 << "%\n";
 	cout << "drawer construct time: " << time_draw_init.count() << "s, " << time_draw_init.count()/time_total.count()*100 << "%\n";
 	cout << "graph init time: " << time_graph_init.count() << "s, " << time_graph_init.count()/time_total.count()*100 << "%\n";
 	cout << "draw graph time: " << time_draw_graph.count() << "s, " << time_draw_graph.count()/time_total.count()*100 << "%\n";
-
-
-//	std::cout << "numVertex ="  << grid_data.size() << "\n";
+	cout << "print graph time: " << time_print_graph.count() << "s, " << time_print_graph.count()/time_total.count()*100 << "%\n";
+	return 0;
 }
 
 void handle_error(const char* msg) {

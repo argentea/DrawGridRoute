@@ -3,16 +3,16 @@
 namespace DG{
 
 
-DGControler controler(50);
+DGControler controler(100);
 
-tTrans DGGrid::defaultTrans = tTrans({{0.7331748,0.3557667,0.5795556},{0.3557667,0.5256447,-0.7727404},{-0.5795556,0.7727404,0.2588195}});
+//tTrans DGGrid::defaultTrans = tTrans({{0.7331748,0.3557667,0.5795556},{0.3557667,0.5256447,-0.7727404},{-0.5795556,0.7727404,0.2588195}});
+//tTrans DGGrid::defaultTrans = tTrans::Identity();
+tTrans DGGrid::defaultTrans(AngleAxisd(-0.16*M_PI, Vector3d::UnitZ()) *AngleAxisd(0.08*M_PI, Vector3d::UnitX()) * AngleAxisd(0.08*M_PI, Vector3d::UnitY()));
 DGGrid::DGGrid(int size){
 	cout << "init by size\n";
 	grid_points.reserve(size);
 	points.reserve(size);
 	draw_points.reserve(size);
-	bounds.fill(make_pair(0,0));
-	//TODO Check this
 	trans = defaultTrans;
 	return;
 }
@@ -23,25 +23,14 @@ DGGrid::DGGrid(vector<array<int, 3>> &raw_data){
 	grid_points.assign(raw_data.begin(), raw_data.end());
 	points.reserve(size);
 	draw_points.reserve(size);
-	bounds.fill(make_pair(0,0));
 	//TODO Check this
 	trans = defaultTrans;
+
 	return;
 }
 
-void DGGrid::checkBound(DGGridPoint& point){
-	for(int i = 0; i < 3; ++i){
-		if(point.position[i] < bounds[i].first) {
-			bounds[i].first = point.position[i];
-		} else if (point.position[i] > bounds[i].second) {
-			bounds[i].second = point.position[i];
-		}
-	}
-	return;
-}
 
 void DGGrid::addPoint(DGGridPoint& point){
-	checkBound(point);
 	grid_points.emplace_back(point);
 }
 
@@ -69,23 +58,29 @@ void DGGrid::initGraph() {
 void DGGrid::initPoints(){
 	cout << "init point\n";
 	vector<int> tmppoint(3);
-	vector<int> offset(3);
-	for(int i = 0; i < 3; i++){
-		offset[i] = (bounds[i].first + bounds[i].second)/2;
-	}
 	for(auto grid_point : grid_points) {
 		for(int i = 0; i < 3; i++){
-			tmppoint[i] = grid_point.position[i] - offset[i];
+			tmppoint[i] = grid_point.position[i];
 		}
-		points.emplace_back(controler.scale *trans* tPosd(tmppoint[0], tmppoint[1], tmppoint[2]));
+		tPosd pos(controler.scale *trans* tPosd(tmppoint[1], tmppoint[0], tmppoint[2]));
+		for (int i = 0; i < 3; i++) {
+			if (pos[i] < lower_bound[i]) {
+				lower_bound[i] = pos[i];
+			}
+			if (pos[i] > upper_bound[i]) {
+				upper_bound[i] = pos[i];
+			}
+		}
+		points.emplace_back(pos);
 	}
+	return;
 }
 
 void DGGrid::initDrawPoints(){
 	cout << "init draw point\n";
 	for (auto point: points) {
-		draw_points.emplace_back(point.block(0, 0, 2, 1));
-	}	
+		draw_points.emplace_back((point-lower_bound).block(0, 0, 2, 1));
+	}
 }
 
 int DGGrid::size(){

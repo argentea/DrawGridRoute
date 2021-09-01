@@ -1,5 +1,6 @@
 #pragma once
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <string>
 #include <vector>
 #include <array>
@@ -17,7 +18,7 @@ private:
 public:
 	double scale;
 	DGControler(){
-		scale = 200;
+		scale = 20;
 	}
 	DGControler(double iscale):scale(iscale){
 		return;
@@ -60,13 +61,13 @@ private:
 	//raw data, layer, x,y
 	vector<DGGridPoint> grid_points;
 	vector<tPosd> points;
+	tPosd lower_bound;
+	tPosd upper_bound;
 	vector<tDrawPosd> draw_points;
-	array<pair<int, int>, 6> bounds;
 	tTrans trans;
 	static tTrans defaultTrans;
 
 	//helper
-	void checkBound(DGGridPoint& point);
 	void initPoints();
 	void initDrawPoints();
 	//grid_points init at when call addPoint or at when class construct
@@ -74,11 +75,17 @@ private:
 public:
 	DGGrid(){
 		cout << "init by vector<array<int,3>>\n";
-		trans = tTrans({{0.7331748,0.3557667,0.5795556},{0.3557667,0.5256447,-0.7727404},{-0.5795556,0.7727404,0.2588195}});
+		trans = defaultTrans;
 	}
 	DGGrid(int size);
 	DGGrid(vector<array<int, 3>> &raw_data);
 	int size();
+	int picSizex() {
+		return upper_bound[0] - lower_bound[0];
+	}
+	int picSizey() {
+		return upper_bound[1] - lower_bound[1];
+	}
 	void addPoint(DGGridPoint& point);
 	void addPoint(array<int, 3> &raw_data);
 	void transForm(tTrans& trans);
