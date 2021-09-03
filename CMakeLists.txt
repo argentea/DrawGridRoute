@@ -36,12 +36,12 @@ message(${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${CMAKE_CURRENT_LIST_DIR}/thirdparty/eigen)
 
 # Your application target.
-add_executable(test ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp)
-target_include_directories(test SYSTEM PUBLIC ${CMAKE_CURRENT_LIST_DIR}/thirdparty/eigen)
+add_executable(${PROJECT_NAME}_test ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp)
+target_include_directories(${PROJECT_NAME}_test SYSTEM PUBLIC ${CMAKE_CURRENT_LIST_DIR}/thirdparty/eigen)
 
 # Add Blend2D dependency to your application. The dependency
 # should provide everything needed - include paths, libraries,
 # compiler flags, and compiler definitions.
 target_link_libraries(drawGraph Blend2D::Blend2D)
-target_link_libraries(test Blend2D::Blend2D)
-target_link_libraries(test ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_test Blend2D::Blend2D)
+target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
