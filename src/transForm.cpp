@@ -23,7 +23,6 @@ DGGrid::DGGrid(vector<array<int, 3>> &raw_data){
 	grid_points.assign(raw_data.begin(), raw_data.end());
 	points.reserve(size);
 	draw_points.reserve(size);
-	//TODO Check this
 	trans = defaultTrans;
 
 	return;

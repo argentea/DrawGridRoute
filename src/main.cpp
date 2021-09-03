@@ -32,6 +32,19 @@ int main(int argc, char* argv[]){
 	vector<vector<int>> conn_data;
 	vector<int> conn_attri;
 	vector<list<int>> sol_data;
+	sol_data.push_back({471, 470, 469, 468, 1180, 1181, 1182,
+			1183, 1184, 2005, 2004, 2003, 2002, 2001, 2000,
+			1999, 1998, 1997, 1996, 1995, 1994, 1990, 1982,
+			1981, 1980, 1979, 1978, 1977, 1976, 1975, 1974,
+			1973, 1972, 1971, 793, 794, 209});
+	vector<vector<int>> highlight_vertex;
+	highlight_vertex.push_back({208, 225, 242, 209, 226, 243,
+			260, 210, 227, 244});
+	highlight_vertex.push_back({447, 448, 449, 450, 451, 452,
+			453, 454, 455, 456, 471, 472, 473, 474, 475, 476,
+			477, 478, 479, 480, 354, 331, 355, 356, 357, 358,
+			359, 360, 379, 332, 380, 333, 381, 334, 382, 335,
+			383, 407, 431, 336, 384, 408, 432});
 	float nodeCost;
 	int nodeuId, layerIdu, layerIdv, trackId, crossId, dir;
 
@@ -50,13 +63,11 @@ int main(int argc, char* argv[]){
 		}else {
 			grid_data.push_back({layerIdu, crossId, trackId});
 		}
-//		printf(format1, nodeuId, nodeCost, layerId, trackId, crossId, dir);
 
 		for(int i = 0; i < 6; i++){
 			f = static_cast<const char*>(memchr(f, '\n', l-f));
 			f++;
 			sscanf(f, format2, &nodevId, &connCost, &layerIdv, &trackId);
-			//printf(format2, nodevId, connCost, layerIdv, trackId);
 			conn_data.push_back({nodeuId, nodevId});
 			if (layerIdu == layerIdv)
 				conn_attri.push_back(layerIdv);
@@ -73,7 +84,7 @@ int main(int argc, char* argv[]){
 	cout << "main construct drawer\n";
 
 
-	DG::DGDrawer drawer(grid_data, conn_data, sol_data, conn_attri);
+	DG::DGDrawer drawer(grid_data, conn_data, sol_data, conn_attri, highlight_vertex);
 	auto drawer_init = chrono::steady_clock::now();
 	chrono::duration<double> time_draw_init = drawer_init - data_init_end;
 	cout << "main construct drawer end\n";

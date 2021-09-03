@@ -34,16 +34,26 @@ void DGDrawer::initGraph(){
 	int sols_num = solus.size();
 	dsolus.resize(sols_num);
 	for (int i = 0; i < sols_num; ++i) {
-		dsolus[i].moveTo(dpoints[*solus[i].sol.begin()]);
-		for (auto sol_point_index: solus[i].sol) {
-			dsolus[i].lineTo(dpoints[sol_point_index]);
+		auto cur = solus[i].begin();
+		dsolus[i].moveTo(dpoints[*cur]);
+		while(cur != solus[i].end()){
+			dsolus[i].lineTo(dpoints[*cur]);
+			cur++;
+		}
+	}
+
+	//init pins
+	int pin_num = pinset.size();
+	dpins.resize(pin_num);
+	for (int i = 0; i < pin_num; ++i) {
+		dpins[i].reserve(pinset[i].size());
+		for (auto point: pinset[i]) {
+			dpins[i].emplace_back(BLCircle(dpoints[point].x, dpoints[point].y, 5));
 		}
 	}
 
 	//init image and context
 	if (img.create(grid.picSizex(), grid.picSizey(), BL_FORMAT_PRGB32) != BL_SUCCESS) {
-		cerr << "create image fail, please check image size or format\n";
-		cerr << "size : " << grid.picSizex() << "x" << grid.picSizey() << endl;
 	}
 	ctx.begin(img);
 	if (!ctx){
@@ -113,6 +123,7 @@ void DGDrawer::drawGraph(){
 
 	//set width
 	ctx.setStrokeWidth(2);
+	ctx.setFillStyle(BLRgba32(0xFFFFFFFF));
 	//draw grid
 	int conns_size = dconns.size();
 	int color_set_size = conns_color_set.size();
@@ -126,15 +137,29 @@ void DGDrawer::drawGraph(){
 		ctx.setStrokeStyle(conns_color_set[colorid%color_set_size]);
 		ctx.strokePath(dconns[i]);
 	}
-	for(auto path: dsolus){
-		ctx.strokePath(path);
+
+	//draw solus
+	ctx.setStrokeWidth(4);
+	int solus_size = dsolus.size();
+	for(int i = 0; i < solus_size; i++){
+		ctx.setStrokeStyle(solus_color_set[i%color_set_size]);
+		ctx.strokePath(dsolus[i]);
+	}
+
+
+	//draw pins
+	int pin_num = pinset.size();
+	for(int i = 0; i < pin_num; i++) {
+		for (auto dp: dpins[i]) {
+			ctx.fillCircle(dp);
+		}
 	}
 	ctx.end();
 }
 
 void DGDrawer::printBMP(){
 	codec.findByName("BMP");
-	if (img.writeToFile("bad.bmp", codec) != BL_SUCCESS){
+	if (img.writeToFile("mediam.bmp", codec) != BL_SUCCESS){
 		cerr << "write fail" << endl;
 	}
 }

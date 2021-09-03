@@ -6,19 +6,8 @@
 #include <iterator>
 
 namespace DG{
+typedef list<int> DGSolution;
 class DGDrawer;
-
-class DGSolution {
-public:
-	int id;
-	BLRgba32 color;
-	list<int> sol;
-	DGSolution(list<int> &raw_sol , int raw_id = 0){
-		copy(raw_sol.begin(), raw_sol.end(), sol.begin());
-		id = raw_id;
-	}
-
-};
 
 class DGLineAtrri {
 public:
@@ -103,6 +92,8 @@ private:
 	vector<BLPath> dconns;
 	vector<int> dconns_color;
 	vector<BLPath> dsolus;
+	vector<vector<int>> pinset;
+	vector<vector<BLCircle>> dpins;
 
 	//color item
 	static vector<BLRgba32> conns_color_set;
@@ -132,7 +123,8 @@ public:
 	DGDrawer(vector<array<int, 3>> &raw_grid,
 			vector<vector<int>> &raw_conns, 
 			vector<list<int>> &raw_sols,
-			vector<int> &raw_conns_attrib):grid(raw_grid), conns(raw_conns, raw_conns_attrib){
+			vector<int> &raw_conns_attrib,
+			vector<vector<int>> &highlight_vertex):grid(raw_grid), conns(raw_conns, raw_conns_attrib), pinset(highlight_vertex){
 		//grid, conns, solus init
 		cout << "init DGDrawer\n";
 		if (conns_color_set.empty()){
@@ -157,9 +149,10 @@ public:
 	void printSolus(){
 		cout << "print Solus\n";
 		for (auto solu: solus) {
-			auto tmp = solu.sol.begin();
-			while(tmp != solu.sol.end()){
+			auto tmp = solu.begin();
+			while(tmp != solu.end()){
 				cout << *tmp << "-> ";
+				tmp++;
 			}
 			cout << endl;
 		}
