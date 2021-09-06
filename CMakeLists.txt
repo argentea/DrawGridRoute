@@ -15,14 +15,14 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
 # Where the 'app' and 'blend2d' are.
 message(${CMAKE_CURRENT_LIST_DIR})
-set(APP_DIR "${CMAKE_CURRENT_LIST_DIR}"
+set(DG_DIR "${CMAKE_CURRENT_LIST_DIR}"
     CACHE PATH "Application directory")
 
-set(BLEND2D_DIR "${APP_DIR}/thirdparty/blend2d"
+set(BLEND2D_DIR "${DG_DIR}/thirdparty/blend2d"
     CACHE PATH "Location of 'blend2d'")
 message(${BLEND2D_DIR})
 
-set(EIGEN_DIR "${APP_DIR}/thirdparty/eigen"
+set(EIGEN_DIR "${DG_DIR}/thirdparty/eigen"
     CACHE PATH "Location of 'eigen'")
 
 # Enable Blend2D static build.
