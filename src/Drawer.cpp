@@ -58,6 +58,7 @@ void DGDrawer::initGraph() {
     ctx.begin(img);
     if (!ctx) {
         cerr << "bind img to context fail\n";
+		cerr << "img size:" << grid.picSizex() << "x" << grid.picSizey() << endl;
         exit(1);
     }
     ctx.setCompOp(BL_COMP_OP_SRC_COPY);
